@@ -8,16 +8,33 @@ The original boomer is a screen zoomer written in Nim using raw X11/GLX. This po
 
 ```bash
 sudo apt install \
-  python3-gi gir1.2-gtk-4.0 \
+  python3-gi gir1.2-gtk-3.0 gir1.2-gtk-4.0 \
   libgirepository-2.0-dev libcairo2-dev \
   python3-dbus
 ```
 
-Then install Python packages into the project's virtual environment:
+`gi` is provided by Ubuntu's `python3-gi` package. If you use a virtual environment, create it from the system Python with system packages enabled so PyGObject remains visible:
 
 ```bash
-pip install PyGObject PyOpenGL numpy Pillow
+/usr/bin/python3 -m venv --system-site-packages .venv
+source .venv/bin/activate
 ```
+
+Then install the Python packages into that virtual environment:
+
+```bash
+pip install -r requirements.txt
+```
+
+If `python src/boomer.py` fails with `ModuleNotFoundError: No module named 'gi'`, the active Python cannot see the system PyGObject package. Recreate the virtual environment with `--system-site-packages` as shown above, or run Boomer with `/usr/bin/python3`.
+
+For tray icon support on Ubuntu/GNOME, make sure AppIndicator support is available:
+
+```bash
+sudo apt install gir1.2-ayatanaappindicator3-0.1
+```
+
+The tray launcher writes capture output and errors to `~/.cache/boomer/tray.log`.
 
 ## Quick Start
 
@@ -26,6 +43,26 @@ python src/boomer.py
 ```
 
 This takes a screenshot of your current screen and opens it fullscreen so you can zoom and pan around it.
+
+To keep Boomer running in the background with a tray icon:
+
+```bash
+python src/tray.py
+```
+
+The tray menu lets you trigger a new capture, toggle windowed captures, open preferences, and quit the background process. Preferences are stored in `~/.config/boomer/tray_config`.
+
+To start the tray process detached from your terminal:
+
+```bash
+nohup python src/tray.py >/tmp/boomer-tray.log 2>&1 &
+```
+
+The default tray hotkey is `Ctrl` + `Alt` + `Z`. Global hotkeys work on X11 through `pynput`; GNOME Wayland may block app-level global shortcuts. If that happens, add a GNOME custom keyboard shortcut that runs:
+
+```bash
+python /path/to/boomer-codex/src/boomer.py
+```
 
 ## Controls
 
@@ -39,6 +76,20 @@ This takes a screenshot of your current screen and opens it fullscreen so you ca
 | `m` | Mirror the image horizontally |
 | `r` | Reload config file |
 | `q` or `Esc` | Quit |
+
+## Tray Preferences
+
+The background tray process stores its own preferences separately from the zoom physics config:
+
+```ini
+[tray]
+shortcut = <ctrl>+<alt>+z
+windowed = false
+delay = 0.0
+config_file = /home/you/.config/boomer/config
+```
+
+Use `Preferences...` from the tray menu to edit these values, or edit `~/.config/boomer/tray_config` directly.
 
 ## Command-line Options
 
