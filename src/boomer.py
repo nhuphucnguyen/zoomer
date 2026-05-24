@@ -94,9 +94,12 @@ class BoomerWindow(Gtk.ApplicationWindow):
         self.gl_area.add_controller(click_ctrl)
 
         scroll_ctrl = Gtk.EventControllerScroll()
-        scroll_ctrl.set_flags(Gtk.EventControllerScrollFlags.VERTICAL)
+        scroll_ctrl.set_flags(
+            Gtk.EventControllerScrollFlags.BOTH_AXES |
+            Gtk.EventControllerScrollFlags.KINETIC
+        )
         scroll_ctrl.connect('scroll', self._on_scroll)
-        self.gl_area.add_controller(scroll_ctrl)
+        self.add_controller(scroll_ctrl)
 
         self.gl_area.add_tick_callback(self._on_tick)
         self._detect_refresh_rate()
@@ -331,11 +334,13 @@ class BoomerWindow(Gtk.ApplicationWindow):
         self.mouse.drag = False
 
     def _on_scroll(self, ctrl, dx, dy):
-        state = ctrl.get_current_event_state()
+        event = ctrl.get_current_event()
+        state = event.get_modifier_state() if event else Gdk.ModifierType(0)
         if dy < 0:
             self._scroll_up(state)
         elif dy > 0:
             self._scroll_down(state)
+        return True
         return True
 
 
