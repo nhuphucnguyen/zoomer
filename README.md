@@ -1,4 +1,4 @@
-# boomer-port
+# boomer
 
 A port of [boomer](https://github.com/tsoding/boomer) to Python + GTK4, targeting Ubuntu GNOME 46.
 
@@ -65,7 +65,7 @@ After installing the Debian package, the only public launcher is `boomer`; it st
 If you need a GNOME custom keyboard shortcut for Wayland, use the internal capture command:
 
 ```bash
-/usr/bin/python3 /usr/lib/boomer-codex/boomer.py
+/usr/bin/python3 /usr/lib/boomer/boomer.py
 ```
 
 ## Build a Debian Package
@@ -79,7 +79,7 @@ scripts/build-deb.sh
 The package is written to `dist/`. Install it with apt so system dependencies are resolved automatically:
 
 ```bash
-sudo apt install ./dist/boomer-codex_0.1.2_all.deb
+sudo apt install ./dist/boomer_0.1.2_all.deb
 ```
 
 After installation, run Boomer with `boomer`; it starts the tray app in the background and returns immediately. Launcher output is written to `~/.cache/boomer/tray-launcher.log`.

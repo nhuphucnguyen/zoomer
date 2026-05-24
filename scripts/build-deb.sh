@@ -2,9 +2,10 @@
 set -euo pipefail
 
 PACKAGE_NAME="boomer"
-VERSION="${VERSION:-0.1.1}"
+VERSION="${VERSION:-0.1.2}"
 ARCHITECTURE="${ARCHITECTURE:-all}"
-MAINTAINER="${MAINTAINER:-Boomer Codex Maintainers <maintainers@example.com>}"
+MAINTAINER="${MAINTAINER:-Boomer Maintainers <maintainers@example.com>}"
+APP_DIR_NAME="boomer"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
@@ -36,12 +37,13 @@ require_file "${ROOT_DIR}/src/navigation.py"
 require_file "${ROOT_DIR}/src/screenshot.py"
 require_file "${ROOT_DIR}/src/frag.glsl"
 require_file "${ROOT_DIR}/src/vert.glsl"
+require_file "${ROOT_DIR}/assets/boomer.svg"
 
 rm -rf "${STAGE_DIR}"
 mkdir -p \
     "${STAGE_DIR}/DEBIAN" \
     "${STAGE_DIR}/usr/bin" \
-    "${STAGE_DIR}/usr/lib/${PACKAGE_NAME}" \
+    "${STAGE_DIR}/usr/lib/${APP_DIR_NAME}" \
     "${STAGE_DIR}/usr/share/applications" \
     "${STAGE_DIR}/usr/share/doc/${PACKAGE_NAME}" \
     "${STAGE_DIR}/usr/share/icons/hicolor/scalable/apps" \
@@ -55,7 +57,7 @@ install -m 0644 \
     "${ROOT_DIR}/src/tray.py" \
     "${ROOT_DIR}/src/frag.glsl" \
     "${ROOT_DIR}/src/vert.glsl" \
-    "${STAGE_DIR}/usr/lib/${PACKAGE_NAME}/"
+    "${STAGE_DIR}/usr/lib/${APP_DIR_NAME}/"
 
 install -m 0644 "${ROOT_DIR}/README.md" "${STAGE_DIR}/usr/share/doc/${PACKAGE_NAME}/README.md"
 
@@ -63,31 +65,29 @@ cat >"${STAGE_DIR}/usr/bin/boomer" <<'EOF'
 #!/bin/sh
 cache_dir="${XDG_CACHE_HOME:-$HOME/.cache}/boomer"
 mkdir -p "$cache_dir"
-nohup /usr/bin/python3 /usr/lib/boomer-codex/tray.py "$@" >>"$cache_dir/tray-launcher.log" 2>&1 &
+if command -v setsid >/dev/null 2>&1; then
+    setsid -f /usr/bin/python3 /usr/lib/boomer/tray.py "$@" >>"$cache_dir/tray-launcher.log" 2>&1 </dev/null
+else
+    nohup /usr/bin/python3 /usr/lib/boomer/tray.py "$@" >>"$cache_dir/tray-launcher.log" 2>&1 </dev/null &
+fi
 exit 0
 EOF
 
 chmod 0755 "${STAGE_DIR}/usr/bin/boomer"
 
-cat >"${STAGE_DIR}/usr/share/applications/boomer-codex.desktop" <<'EOF'
+cat >"${STAGE_DIR}/usr/share/applications/boomer.desktop" <<'EOF'
 [Desktop Entry]
 Type=Application
-Name=Boomer Codex
+Name=Boomer
 Comment=Screen zoomer and screenshot inspection tool
 Exec=boomer
-Icon=boomer-codex
+Icon=boomer
 Terminal=false
 Categories=Utility;Accessibility;
 StartupNotify=false
 EOF
 
-cat >"${STAGE_DIR}/usr/share/icons/hicolor/scalable/apps/boomer-codex.svg" <<'EOF'
-<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
-  <circle cx="32" cy="32" r="27" fill="#242424"/>
-  <circle cx="29" cy="29" r="13" fill="none" stroke="#ffffff" stroke-width="6"/>
-  <path d="M39 39 L53 53" stroke="#ffffff" stroke-width="7" stroke-linecap="round"/>
-</svg>
-EOF
+install -m 0644 "${ROOT_DIR}/assets/boomer.svg" "${STAGE_DIR}/usr/share/icons/hicolor/scalable/apps/boomer.svg"
 
 cat >"${STAGE_DIR}/DEBIAN/control" <<EOF
 Package: ${PACKAGE_NAME}
@@ -98,8 +98,10 @@ Architecture: ${ARCHITECTURE}
 Maintainer: ${MAINTAINER}
 Depends: python3, python3-gi, gir1.2-gtk-4.0, gir1.2-gtk-3.0, gir1.2-ayatanaappindicator3-0.1, python3-dbus, python3-numpy, python3-pil, python3-opengl, python3-pynput, python3-tk
 Recommends: grim | scrot
+Conflicts: boomer-codex
+Replaces: boomer-codex
 Description: Tray-based screen zoomer for GNOME
- Boomer Codex runs from the desktop tray and opens quick interactive zoom
+ Boomer runs from the desktop tray and opens quick interactive zoom
  captures from the tray menu or keyboard shortcut.
 EOF
 
