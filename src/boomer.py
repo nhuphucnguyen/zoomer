@@ -72,6 +72,8 @@ class BoomerWindow(Gtk.ApplicationWindow):
         self.gl_area = Gtk.GLArea()
         self.gl_area.set_auto_render(True)
         self.gl_area.set_required_version(3, 2)
+        self.gl_area.set_hexpand(True)
+        self.gl_area.set_vexpand(True)
         self.gl_area.connect('realize', self._on_realize)
         self.gl_area.connect('unrealize', self._on_unrealize)
         self.gl_area.connect('render', self._on_render)
@@ -168,8 +170,9 @@ class BoomerWindow(Gtk.ApplicationWindow):
         gl.glGenerateMipmap(gl.GL_TEXTURE_2D)
         gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MIN_FILTER, gl.GL_NEAREST)
         gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MAG_FILTER, gl.GL_NEAREST)
-        gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_S, gl.GL_CLAMP_TO_BORDER)
-        gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_T, gl.GL_CLAMP_TO_BORDER)
+        # GL_CLAMP_TO_BORDER is not in OpenGL ES core; use CLAMP_TO_EDGE instead
+        gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_S, gl.GL_CLAMP_TO_EDGE)
+        gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_T, gl.GL_CLAMP_TO_EDGE)
 
         gl.glUseProgram(self.shader_program)
         gl.glUniform1i(gl.glGetUniformLocation(self.shader_program, 'tex'), 0)
@@ -228,6 +231,8 @@ class BoomerWindow(Gtk.ApplicationWindow):
         fl = self.flashlight
 
         gl.glUseProgram(p)
+        gl.glActiveTexture(gl.GL_TEXTURE0)
+        gl.glBindTexture(gl.GL_TEXTURE_2D, self.texture)
         gl.glUniform2f(loc(p, 'cameraPos'), cam.position.x, cam.position.y)
         gl.glUniform1f(loc(p, 'cameraScale'), cam.scale)
         gl.glUniform2f(loc(p, 'screenshotSize'), float(self.img_width), float(self.img_height))
