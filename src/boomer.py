@@ -6,6 +6,10 @@ import sys
 import time
 from pathlib import Path
 
+# Must be set before PyOpenGL is imported so it uses EGL for context detection
+# (GTK4 creates an EGL context; without this PyOpenGL can't find the current context)
+os.environ.setdefault('PYOPENGL_PLATFORM', 'egl')
+
 import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Gdk', '4.0')
@@ -67,7 +71,7 @@ class BoomerWindow(Gtk.ApplicationWindow):
 
         self.gl_area = Gtk.GLArea()
         self.gl_area.set_auto_render(True)
-        self.gl_area.set_required_version(3, 3)
+        self.gl_area.set_required_version(3, 2)
         self.gl_area.connect('realize', self._on_realize)
         self.gl_area.connect('unrealize', self._on_unrealize)
         self.gl_area.connect('render', self._on_render)
@@ -231,7 +235,6 @@ class BoomerWindow(Gtk.ApplicationWindow):
         gl.glUniform2f(loc(p, 'cursorPos'), self.mouse.curr.x * scale, self.mouse.curr.y * scale)
         gl.glUniform1f(loc(p, 'flShadow'), fl.shadow)
         gl.glUniform1f(loc(p, 'flRadius'), fl.radius)
-        gl.glUniform1f(loc(p, 'cameraScale'), cam.scale)
         gl.glUniform1i(loc(p, 'mirror'), 1 if self.mirror else 0)
 
         gl.glBindVertexArray(self.vao)
