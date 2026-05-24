@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-PACKAGE_NAME="boomer-codex"
-VERSION="${VERSION:-0.1.0}"
+PACKAGE_NAME="boomer"
+VERSION="${VERSION:-0.1.1}"
 ARCHITECTURE="${ARCHITECTURE:-all}"
 MAINTAINER="${MAINTAINER:-Boomer Codex Maintainers <maintainers@example.com>}"
 
@@ -61,22 +61,20 @@ install -m 0644 "${ROOT_DIR}/README.md" "${STAGE_DIR}/usr/share/doc/${PACKAGE_NA
 
 cat >"${STAGE_DIR}/usr/bin/boomer" <<'EOF'
 #!/bin/sh
-exec /usr/bin/python3 /usr/lib/boomer-codex/boomer.py "$@"
+cache_dir="${XDG_CACHE_HOME:-$HOME/.cache}/boomer"
+mkdir -p "$cache_dir"
+nohup /usr/bin/python3 /usr/lib/boomer-codex/tray.py "$@" >>"$cache_dir/tray-launcher.log" 2>&1 &
+exit 0
 EOF
 
-cat >"${STAGE_DIR}/usr/bin/boomer-tray" <<'EOF'
-#!/bin/sh
-exec /usr/bin/python3 /usr/lib/boomer-codex/tray.py "$@"
-EOF
-
-chmod 0755 "${STAGE_DIR}/usr/bin/boomer" "${STAGE_DIR}/usr/bin/boomer-tray"
+chmod 0755 "${STAGE_DIR}/usr/bin/boomer"
 
 cat >"${STAGE_DIR}/usr/share/applications/boomer-codex.desktop" <<'EOF'
 [Desktop Entry]
 Type=Application
 Name=Boomer Codex
 Comment=Screen zoomer and screenshot inspection tool
-Exec=boomer-tray
+Exec=boomer
 Icon=boomer-codex
 Terminal=false
 Categories=Utility;Accessibility;
@@ -100,9 +98,9 @@ Architecture: ${ARCHITECTURE}
 Maintainer: ${MAINTAINER}
 Depends: python3, python3-gi, gir1.2-gtk-4.0, gir1.2-gtk-3.0, gir1.2-ayatanaappindicator3-0.1, python3-dbus, python3-numpy, python3-pil, python3-opengl, python3-pynput, python3-tk
 Recommends: grim | scrot
-Description: Screen zoomer for GNOME
- Boomer Codex captures the current screen and opens it in an interactive zoom
- window. It also includes a background tray launcher for quick captures.
+Description: Tray-based screen zoomer for GNOME
+ Boomer Codex runs from the desktop tray and opens quick interactive zoom
+ captures from the tray menu or keyboard shortcut.
 EOF
 
 cat >"${STAGE_DIR}/DEBIAN/postinst" <<'EOF'
@@ -138,7 +136,7 @@ EOF
 chmod 0755 "${STAGE_DIR}/DEBIAN/postinst" "${STAGE_DIR}/DEBIAN/postrm"
 
 find "${STAGE_DIR}" -type d -exec chmod 0755 {} +
-find "${STAGE_DIR}" -type f ! -path '*/DEBIAN/postinst' ! -path '*/DEBIAN/postrm' ! -path '*/usr/bin/boomer' ! -path '*/usr/bin/boomer-tray' -exec chmod 0644 {} +
+find "${STAGE_DIR}" -type f ! -path '*/DEBIAN/postinst' ! -path '*/DEBIAN/postrm' ! -path '*/usr/bin/boomer' -exec chmod 0644 {} +
 
 dpkg-deb --build --root-owner-group "${STAGE_DIR}" "${OUTPUT_FILE}"
 

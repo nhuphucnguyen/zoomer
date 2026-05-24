@@ -38,13 +38,7 @@ The tray launcher writes capture output and errors to `~/.cache/boomer/tray.log`
 
 ## Quick Start
 
-```bash
-python src/boomer.py
-```
-
-This takes a screenshot of your current screen and opens it fullscreen so you can zoom and pan around it.
-
-To keep Boomer running in the background with a tray icon:
+Run Boomer as a background tray app:
 
 ```bash
 python src/tray.py
@@ -58,10 +52,20 @@ To start the tray process detached from your terminal:
 nohup python src/tray.py >/tmp/boomer-tray.log 2>&1 &
 ```
 
-The default tray hotkey is `Ctrl` + `Alt` + `Z`. Global hotkeys work on X11 through `pynput`; GNOME Wayland may block app-level global shortcuts. If that happens, add a GNOME custom keyboard shortcut that runs:
+The default tray hotkey is `Ctrl` + `Alt` + `Z`. Global hotkeys work on X11 through `pynput`; GNOME Wayland may block app-level global shortcuts.
+
+For development, the direct capture window can still be launched with:
 
 ```bash
-python /path/to/boomer-codex/src/boomer.py
+python src/boomer.py
+```
+
+After installing the Debian package, the only public launcher is `boomer`; it starts the tray app.
+
+If you need a GNOME custom keyboard shortcut for Wayland, use the internal capture command:
+
+```bash
+/usr/bin/python3 /usr/lib/boomer-codex/boomer.py
 ```
 
 ## Build a Debian Package
@@ -75,10 +79,10 @@ scripts/build-deb.sh
 The package is written to `dist/`. Install it with apt so system dependencies are resolved automatically:
 
 ```bash
-sudo apt install ./dist/boomer-codex_0.1.0_all.deb
+sudo apt install ./dist/boomer-codex_0.1.2_all.deb
 ```
 
-After installation, run the zoomer with `boomer` or start the tray app with `boomer-tray`.
+After installation, run Boomer with `boomer`; it starts the tray app in the background and returns immediately. Launcher output is written to `~/.cache/boomer/tray-launcher.log`.
 
 ## Controls
 
@@ -107,10 +111,12 @@ config_file = /home/you/.config/boomer/config
 
 Use `Preferences...` from the tray menu to edit these values, or edit `~/.config/boomer/tray_config` directly.
 
-## Command-line Options
+## Internal Capture Options
+
+The installed app is intentionally tray-only: users launch `boomer`, then trigger captures from the tray menu or shortcut. The direct capture script remains available internally for the tray launcher and for development.
 
 ```
-usage: boomer [-h] [-d seconds] [-w] [-c filepath] [--new-config [filepath]]
+usage: python src/boomer.py [-h] [-d seconds] [-w] [-c filepath] [--new-config [filepath]]
 
 options:
   -d, --delay seconds     Delay start by N seconds (useful for capturing menus)
