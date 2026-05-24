@@ -270,6 +270,7 @@ class BoomerWindow(Gtk.ApplicationWindow):
             h = float(widget.get_height() * scale)
             update_camera(self.camera, self.config, dt, self.mouse, w, h)
             self.flashlight.update(dt)
+            widget.queue_render()
 
         return GLib.SOURCE_CONTINUE
 
@@ -340,7 +341,6 @@ class BoomerWindow(Gtk.ApplicationWindow):
             self._scroll_up(state)
         elif dy > 0:
             self._scroll_down(state)
-        return True
         return True
 
 
