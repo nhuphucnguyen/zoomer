@@ -64,6 +64,22 @@ The default tray hotkey is `Ctrl` + `Alt` + `Z`. Global hotkeys work on X11 thro
 python /path/to/boomer-codex/src/boomer.py
 ```
 
+## Build a Debian Package
+
+Build an installable `.deb` from the current source tree:
+
+```bash
+scripts/build-deb.sh
+```
+
+The package is written to `dist/`. Install it with apt so system dependencies are resolved automatically:
+
+```bash
+sudo apt install ./dist/boomer-codex_0.1.0_all.deb
+```
+
+After installation, run the zoomer with `boomer` or start the tray app with `boomer-tray`.
+
 ## Controls
 
 | Control | Description |
