@@ -1,0 +1,5 @@
+PyOpenGL>=3.1.0
+numpy>=1.21.0
+Pillow>=9.0.0
+# dbus-python is best installed via apt: sudo apt install python3-dbus
+# PyGObject is best installed via apt: sudo apt install python3-gi gir1.2-gtk-4.0
