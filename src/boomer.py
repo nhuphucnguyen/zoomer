@@ -85,6 +85,7 @@ class BoomerWindow(Gtk.ApplicationWindow):
 
         motion_ctrl = Gtk.EventControllerMotion()
         motion_ctrl.connect('motion', self._on_motion)
+        motion_ctrl.connect('enter', self._on_motion)
         self.gl_area.add_controller(motion_ctrl)
 
         click_ctrl = Gtk.GestureClick()
@@ -240,7 +241,7 @@ class BoomerWindow(Gtk.ApplicationWindow):
         gl.glUniform1f(loc(p, 'cameraScale'), cam.scale)
         gl.glUniform2f(loc(p, 'screenshotSize'), float(self.img_width), float(self.img_height))
         gl.glUniform2f(loc(p, 'windowSize'), float(width), float(height))
-        gl.glUniform2f(loc(p, 'cursorPos'), self.mouse.curr.x * scale, self.mouse.curr.y * scale)
+        gl.glUniform2f(loc(p, 'cursorPos'), self.mouse.curr.x, self.mouse.curr.y)
         gl.glUniform1f(loc(p, 'flShadow'), fl.shadow)
         gl.glUniform1f(loc(p, 'flRadius'), fl.radius)
         gl.glUniform1i(loc(p, 'mirror'), 1 if self.mirror else 0)
@@ -319,15 +320,18 @@ class BoomerWindow(Gtk.ApplicationWindow):
         return True
 
     def _on_motion(self, ctrl, x, y):
-        self.mouse.curr = Vec2(x, y)
+        sf = self.gl_area.get_scale_factor()
+        px, py = x * sf, y * sf
+        self.mouse.curr = Vec2(px, py)
         if self.mouse.drag:
             delta = self.mouse.prev / self.camera.scale - self.mouse.curr / self.camera.scale
             self.camera.position = self.camera.position + delta
             self.camera.velocity = delta * self._rate
-        self.mouse.prev = Vec2(x, y)
+        self.mouse.prev = Vec2(px, py)
 
     def _on_button_pressed(self, gesture, n_press, x, y):
-        self.mouse.prev = Vec2(x, y)
+        sf = self.gl_area.get_scale_factor()
+        self.mouse.prev = Vec2(x * sf, y * sf)
         self.mouse.drag = True
         self.camera.velocity = Vec2()
 
